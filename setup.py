@@ -17,6 +17,7 @@ requires = [
     'transaction',
     'zope.sqlalchemy',
     'waitress',
+    'pycrypto',
     ]
 
 setup(name='angerona2',

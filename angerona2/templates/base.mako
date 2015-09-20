@@ -22,13 +22,12 @@
 
     <!-- / AddedCSS / -->
     <%block name="AddedCSS"/>
-
 </head>
 <body>
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
-            <ul class="nav nav-pills">
+            <ul class="nav navbar-nav">
 
 % for item in vc.navmenu:
 <%
@@ -50,8 +49,9 @@
 	</div>
 
 	<footer>
+		<p></p>
         <div class="container">
-            <p>&copy; Company 2014</p>
+            <p>&copy; Nextraztus 2015</p>
         </div>
     </footer>
 

@@ -11,11 +11,12 @@ from pyramid.paster import (
 
 from pyramid.scripts.common import parse_vars
 
-from ..models import (
+from angerona2 import (
     DBSession,
-    MyModel,
     Base,
     )
+
+from angerona2.models.secret import Secret
 
 
 def usage(argv):
@@ -36,5 +37,5 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        model = MyModel(name='one', value=1)
+        model = Secret('asdf')
         DBSession.add(model)
