@@ -19,6 +19,7 @@ requires = [
     'waitress',
     'pycrypto',
     'gunicorn',
+    'eventlet',
     ]
 
 setup(name='angerona2',

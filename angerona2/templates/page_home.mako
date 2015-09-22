@@ -13,7 +13,7 @@
             zeros of the modern world.</p>
             
             <div class="text-center">
-                <a class="btn btn-success btn-lg" href="#" role="button">Share a Secret</a>
+                <a class="btn btn-success btn-lg" href="${request.route_url('secret')}" role="button">Share a Secret</a>
             </div>
         </div>
     </div>

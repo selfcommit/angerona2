@@ -23,6 +23,7 @@ class ViewController():
         self.request = request
         self.navmenudata = [
             { 'txt':'Home',             'rte':'home'},
+            { 'txt':'Share',            'rte':'secret'},
         ]
 
     @property
