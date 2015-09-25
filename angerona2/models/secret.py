@@ -15,6 +15,7 @@ from angerona2 import (
     DBSession,
 )
 
+from sqlalchemy.ext.hybrid import hybrid_property
 
 class Secret(Base):
     __tablename__ = 'secret'
@@ -33,23 +34,23 @@ class Secret(Base):
             self.uniqhash = uniqid
         self.flags = 0x01
 
-    @property
+    @hybrid_property
     def flag_delete_early(self):
         return bool(self.flags & 0x01)
 
     @flag_delete_early.setter
-    def flag_delete_early_set(self, value):
+    def flag_delete_early(self, value):
         if bool(value):
             self.flags |= 0x01
         else:
             self.flags &= ~0x01
 
-    @property
+    @hybrid_property
     def flag_unlimited_reads(self):
         return bool(self.flags & 0x02)
 
     @flag_unlimited_reads.setter
-    def flag_unlimited_reads_set(self, value):
+    def flag_unlimited_reads(self, value):
         if bool(value):
             self.flags |= 0x02
         else:

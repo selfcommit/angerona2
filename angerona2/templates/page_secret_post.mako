@@ -59,11 +59,12 @@ $(document).ready(function() {
 <div class="row">
     <div class="col-md-12">
         <h3 class="text-center">Sharable Links</h3>
-        <p>Below, you may find the various links for sharing this data out.</p>
-
-        <p>Links are good for: ${friendly_time} or ${friendly_clicks} clicks (whichever comes first).</p>
-        <p>Links ${friendly_delete}.</p>
-
+        <p>Links are good for: <strong>${friendly_time}</strong> or
+        <strong>${friendly_clicks} click(s)</strong>: whichever comes first.</p>
+% if not flag_delete_early:
+        <p>Links <strong>cannot</strong> be deleted early.</p>
+% endif
+        <br/>
         <div class="row">
             <label class="control-label">Require click to show data (for browsers)</label>
             <div class="input-group">

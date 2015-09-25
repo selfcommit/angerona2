@@ -17,6 +17,7 @@ from sqlalchemy.exc import DBAPIError
 from angerona2 import DBSession
 from angerona2.models.secret import Secret
 
+
 logger = logging.getLogger('pages')
 
 
@@ -64,7 +65,7 @@ def page_secret_post(request):
     # parse our checkbox if it is there (flip logic)
     early_delete = 'disallow_early_delete' not in request.POST
 
-    friendly_time = '{}d {}h'.format(expiry // 24, expiry % 24)
+    friendly_time = '{} day(s) {} hour(s)'.format(expiry // 24, expiry % 24)
     expiry = datetime.datetime.now() + datetime.timedelta(hours=expiry)
 
     secret, uuid = sc.create_secret(expiry_time=expiry, lifetime_reads=numviews,
@@ -75,20 +76,15 @@ def page_secret_post(request):
     DBSession.flush()
 
     if secret.flag_unlimited_reads:
-        friendly_clicks = 'Unlimited Views'
+        friendly_clicks = 'unlimited'
     else:
         friendly_clicks = numviews
-
-    if secret.flag_delete_early:
-        friendly_delete = 'can be deleted early'
-    else:
-        friendly_delete = '<strong>cannot</strong> be deleted early'
 
     return {
         'vc':ViewController.ViewController(request),
         'uuid':uuid, 
         'friendly_time': friendly_time,
         'friendly_clicks': friendly_clicks,
-        'friendly_delete': friendly_delete
+        'friendly_delete': not secret.flag_delete_early
     }
 
