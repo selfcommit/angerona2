@@ -2,7 +2,8 @@
 
 import threading
 
-# stolen from Peter Grace https://github.com/PeterGrace
+
+# stolen from http://www.alexconrad.org/2012/08/log-unique-request-ids-with-pyramid.html
 def hack_thread_name_tween_factory(handler, registry):
     def hack_thread_name_tween(request):
         # Hack in the request ID inside the thread's name
@@ -17,28 +18,6 @@ def hack_thread_name_tween_factory(handler, registry):
         return response
     return hack_thread_name_tween
 
-# based on http://stackoverflow.com/questions/8436812/how-to-implement-navigation-selected-item
-class ViewController():
-    def __init__(self, request, **kwargs):
-        self.request = request
-        self.navmenudata = [
-            { 'txt':'Home',             'rte':'home'},
-            { 'txt':'Share',            'rte':'secret'},
-        ]
-
-    @property
-    def navmenu(self):
-        items = []
-        for item in self.navmenudata:
-            item['url'] = self.request.route_url(item['rte'])
-            if self.request.matched_route.name == item['rte']:
-                item['active'] = 1
-                items.append(item)
-            else:
-                item['active'] = 0
-                items.append(item)
-
-        return items
 
 #adapted from https://wiki.python.org/moin/EscapingHtml
 def html_escape(text):
@@ -49,4 +28,4 @@ def html_escape(text):
         ">": "&gt;",
         "<": "&lt;",
     }
-    return "".join(html_escape_table.get(c,c) for c in text)
+    return "".join(html_escape_table.get(c, c) for c in text)
