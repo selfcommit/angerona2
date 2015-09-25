@@ -38,6 +38,7 @@ def main(global_config, **settings):
 
     config.add_route('home', '/')
     config.add_route('error', '/error')
+    config.add_route('expired', '/expired')
 
     config.add_route('secret', '/secret')
     config.add_route('retrieve', '/retrieve/{uuid}')

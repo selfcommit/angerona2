@@ -3,8 +3,16 @@ from Crypto.Hash import SHA256
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 
+from angerona2 import DBSession
 from angerona2.models.secret import Secret
 
+from sqlalchemy import or_
+from sqlalchemy.orm.exc import NoResultFound
+
+import datetime
+
+class SecretExpiredException(Exception):
+    pass
 
 class SecretController(object):
     '''
@@ -16,7 +24,7 @@ class SecretController(object):
         self._secret = None
 
     def create_secret(self, *args, **kwargs):
-        '''create secret & encrypt plaintext'''
+        '''create secret, encrypt, and return tuple'''
         self._secret = Secret()
         for key in ('expiry_time', 'snippet_type', 'lifetime_reads', 'early_delete'):
             if key == 'early_delete':
@@ -30,11 +38,68 @@ class SecretController(object):
 
             setattr(self._secret, key, kwargs[key])
 
-        return self._encrypt(kwargs['plaintext'])
+        session = DBSession()
+        secret, uuid = self._encrypt(kwargs['plaintext'])
+        DBSession.add(secret)
+        DBSession.flush()
+        return (secret, uuid)
 
     def decrypt_secret(self, uuid):
-        '''retrieve secret from the database, decrypt and return data'''
-        pass
+        '''retrieve secret from the database, decrypt and return tuple'''
+        session = DBSession()
+    
+        hasher = SHA256.new()
+        hasher.update(bytes('{}{}'.format(uuid, uuid), encoding='utf-8'))
+        uniqhash = hasher.hexdigest()
+
+        # see if we can find such a secret
+        try:
+            result = session.query(Secret).filter(
+                        Secret.uniqhash == uniqhash,
+                        Secret.expiry_time >= datetime.datetime.now(),
+                        or_(
+                            Secret.lifetime_reads > 0,
+                            Secret.lifetime_reads == -1
+                        )).one()
+        except NoResultFound as e:
+            raise SecretExpiredException()
+
+        # excellent, decrement the views & immediately write to database
+        if not result.flag_unlimited_reads:
+            result.lifetime_reads -= 1
+            session.update(result)
+            session.flush()
+
+        # decrypt the data in our secret, return them
+        plaintext = _decrypt(result, uniqhash)
+        return (result, plaintext)
+
+    def _decrypt(self, secret, uuid):
+        # generate the input for our key derivation formula
+        hasher = SHA256.new()
+        hasher.update('{}{}'.format(uniqid, secret.nonce))
+        keyhash = hasher.digest()
+
+        # derive our AES key (aes256 wants 32bytes)
+        aeskey = PBKDF2(
+            password=keyhash,
+            salt=secret.Salt,
+            dkLen=32,
+            count=25000,
+            )
+
+        # derive our Iv from the UniqID (16 bytes)
+        hasher = SHA256.new()
+        hasher.update('{}{}'.format(uniqid, aeskey))
+        aesiv = hasher.digest()[:16]
+
+        # unpad from http://stackoverflow.com/a/12525165/274549
+        BS = 16
+        unpad = lambda s : s[0:-ord(s[-1])]
+
+        # decrypt and unpad it
+        cipher = AES.new(aeskey, AES.MODE_CBC, aesiv)
+        return unpad(cipher.decrypt(secret.stored_data))
 
     def is_inrangeor(self, val, rmin, rmax, become):
         if int(val) < rmin and int(val) > rmax:
@@ -77,7 +142,7 @@ class SecretController(object):
             password=keyhash,
             salt=self._secret.salt,
             dkLen=32,
-            count=10000,
+            count=25000,
             )
 
         # derive our Iv from the UniqID (16 bytes)
@@ -95,59 +160,3 @@ class SecretController(object):
 
         # this is the only place the original uniqid is returned
         return (self._secret, uniqid)
-
-
-class DecoderRing(object):
-    def __init__(self, secret, uuid=False):
-        if not isinstance(Secret, secret):
-            raise ValueError('Secret must be a <Secret>')
-
-        self.secret = secret
-        self._uuid = uuid
-        self._data = None
-        self._isready = False
-
-    @property
-    def data(self):
-        if not self.uuid:
-            raise ValueError('Must set uuid before attempting to read data.')
-
-        if not self._isready:
-            self._decrypt_data(self.uuid)
-
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        self._isready = False
-        self._data = value
-
-    def _decrypt_data(self, uniqid):
-        # generate the input for our key derivation formula
-        hasher = SHA256.new()
-        hasher.update('{}{}'.format(uniqid, self.secret.nonce))
-        keyhash = hasher.digest()
-
-        # derive our AES key (aes256 wants 32bytes)
-        aeskey = PBKDF2(
-            password=keyhash,
-            salt=in_model.Salt,
-            dkLen=32,
-            count=10000,
-            )
-
-        # derive our Iv from the UniqID (16 bytes)
-        hasher = SHA256.new()
-        hasher.update('{}{}'.format(uniqid, aeskey))
-        aesiv = hasher.digest()[:16]
-
-        # unpad from http://stackoverflow.com/a/12525165/274549
-        BS = 16
-        unpad = lambda s : s[0:-ord(s[-1])]
-
-        # encrypt it w/ padding
-        cipher = AES.new(aeskey, AES.MODE_CBC, aesiv)
-        self._data = unpad(cipher.decrypt(self.secret.stored_data))
-        self._isready = True
-
-    

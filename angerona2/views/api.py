@@ -8,11 +8,6 @@ from angerona2.controllers import (
     SecretController,
     )
 
-
-
-
-
-
 @view_config(route_name='api_secret', request_method='GET')
 @view_config(route_name='api_secret:uuid', request_method='GET')
 def api_secret_get(request):

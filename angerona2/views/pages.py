@@ -5,6 +5,7 @@ import datetime
 
 from pyramid.response import Response
 from pyramid.view import view_config
+from pyramid.httpexceptions import HTTPFound
 
 from angerona2 import DBSession
 from angerona2.models.secret import Secret
@@ -12,23 +13,23 @@ from angerona2.controllers import (
     ViewController,
     SecretController,
     )
-
-from sqlalchemy.exc import DBAPIError
-from angerona2 import DBSession
-from angerona2.models.secret import Secret
-
+from angerona2.controllers.SecretController import SecretExpiredException
 
 logger = logging.getLogger('pages')
 
 
+@view_config(route_name='error', renderer='angerona2:templates/page_error.mako')
+def page_error(request):
+    return {'vc':ViewController.ViewController(request)}
+
+
+@view_config(route_name='expired', renderer='angerona2:templates/page_expired.mako')
+def page_expired(request):
+    return {'vc':ViewController.ViewController(request)}
+
+
 @view_config(route_name='home', renderer='angerona2:templates/page_home.mako')
 def page_home(request):
-    try:
-        one = DBSession.query(Secret).first()
-    except DBAPIError:
-        return Response('Pyramid is having a problem using your SQL database.',
-                        content_type='text/plain', status_int=500)
-
     return {'vc':ViewController.ViewController(request)}
 
 
@@ -42,8 +43,19 @@ def page_secret_get(request):
              renderer='angerona2:templates/page_retieve.mako')
 def page_retrieve_get(request):
     show_immediately = request.matchdict.get('show', False)
+    sc = SecretController.SecretController()
 
-    return {'vc':ViewController.ViewController(request)}
+    uniqhash = request.matchdict['uuid']
+    try:
+        data, secret = sc.decrypt_secret(uniqhash)
+    except SecretExpiredException as e:
+        return HTTPFound(location=request.route_url('expired'))
+
+    return {
+        'vc': ViewController.ViewController(request),
+        'flag_delete_early': secret.flag_delete_early,
+        'show_immediately': show_immediately
+    }
 
 
 @view_config(route_name='secret', request_method='POST',
@@ -59,21 +71,18 @@ def page_secret_post(request):
         syntype = sc.is_supportedtype(val=request.POST['snippet_type'])
         data = bytes(request.POST['data'], encoding='utf-8')
     except ValueError:
-        # invalid form (no data to save was given)
+        # invalid form (do nothing useful)
         return HTTPFound(location=request.route_url('error'))
 
-    # parse our checkbox if it is there (flip logic)
+    # parse our checkbox if it is there (flip logic because of page wording)
     early_delete = 'disallow_early_delete' not in request.POST
 
     friendly_time = '{} day(s) {} hour(s)'.format(expiry // 24, expiry % 24)
     expiry = datetime.datetime.now() + datetime.timedelta(hours=expiry)
 
     secret, uuid = sc.create_secret(expiry_time=expiry, lifetime_reads=numviews,
-                     snippet_type=syntype, early_delete=early_delete,
-                     plaintext=data)
-
-    DBSession.add(secret)
-    DBSession.flush()
+                            snippet_type=syntype, early_delete=early_delete,
+                            plaintext=data)
 
     if secret.flag_unlimited_reads:
         friendly_clicks = 'unlimited'
@@ -85,6 +94,6 @@ def page_secret_post(request):
         'uuid':uuid, 
         'friendly_time': friendly_time,
         'friendly_clicks': friendly_clicks,
-        'friendly_delete': not secret.flag_delete_early
+        'flag_delete_early': secret.flag_delete_early
     }
 
