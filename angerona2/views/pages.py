@@ -18,6 +18,11 @@ from angerona2.controllers.SecretController import SecretExpiredException
 logger = logging.getLogger('pages')
 
 
+@view_config(route_name='apidocs', renderer='angerona2:templates/page_api.mako')
+def page_apidocs(request):
+    return {'vc':ViewController.ViewController(request)}
+
+
 @view_config(route_name='error', renderer='angerona2:templates/page_error.mako')
 def page_error(request):
     return {'vc':ViewController.ViewController(request)}

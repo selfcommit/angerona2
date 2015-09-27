@@ -37,14 +37,15 @@ def main(global_config, **settings):
     config.add_static_view('static', 'static', cache_max_age=3600)
 
     config.add_route('home', '/')
+    config.add_route('apidocs', '/apidocs')
     config.add_route('error', '/error')
     config.add_route('expired', '/expired')
 
     config.add_route('secret', '/secret')
     config.add_route('retrieve', '/retrieve/{uuid}')
 
-    config.add_route('api_secret', '/v1/secret')
-    config.add_route('api_secret:uuid', '/v1/secret/{uuid}')
+    config.add_route('api_secret', '/api/v1/secret')
+    config.add_route('api_secret:uuid', '/api/v1/secret/{uuid}')
 
     config.add_tween('angerona2.utilities.hack_thread_name_tween_factory')
     config.scan()

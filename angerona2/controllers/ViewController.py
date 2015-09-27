@@ -4,8 +4,9 @@ class ViewController(object):
     def __init__(self, request, **kwargs):
         self.request = request
         self.navmenudata = [
-            { 'txt':'Home',             'rte':'home'},
-            { 'txt':'Share',            'rte':'secret'},
+            { 'txt':'Home',             'rte':'home'    },
+            { 'txt':'Share',            'rte':'secret'  },
+            { 'txt':'API Docs',         'rte':'apidocs' },
         ]
 
     @property

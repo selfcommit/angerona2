@@ -12,10 +12,11 @@ class ApiController(object):
                 setattr(self, key, None)
 
         self.ERR = {
-            0:  ('OK', 'OK'),
+             0: ('OK', 'OK'),
             -1: ('ERROR', 'General error.'),
             -2: ('MISSING', 'Missing fields.'),
-            -3: ('INVALID', "Fields didn't validate.")
+            -3: ('INVALID', "Fields didn't validate."),
+            -4: ('THROTTLED', 'Request has been throttled.'),
         }
 
         self._seterror()
