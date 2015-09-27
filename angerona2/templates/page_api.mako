@@ -194,14 +194,52 @@
 this would be stored
 </span></pre>
 
+            <h3>Failure Example</h3>
+            <p>Lookup of an expired/deleted secret, HTTP status will be 404.</p>
+            <pre class="bg">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D</span><span class="resp">
+{
+    "status": 0,
+    "msg": "OK",
+    "data": null
+}
+</span></pre>
 
-
-
-
+            <p>Throttled. Please don't hammer me.</p>
+            <pre class="bg">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D</span><span class="resp">
+{
+    "status": -4,
+    "msg": "Request has been throttled.",
+    "data": ["THROTTLE", [20]]
+}
+</span></pre>
         </div>
         <div class="clearfix"></div>
     </div>
 
+    <div class="row hl">
+        <div class="col-sm-2">
+            <h3>Secret(s)</h3>
+        </div>
+        <div class="col-sm-10">
+            <h3>Deleting Early</h3>
+            <p>The uuid is required to delete early.</p>
+            <pre class="bg req">DELETE /api/v1/secret/{uuid}</pre>
+            <h3>Success & Failure Response(s)</h3>
+            <p><a href="#top">Standard response object (JSON)</a>, status will be 0, msg "OK". Data
+            will mirror the HTTP Response Code.</p>
+            <table class="table table-condensed">
+                <tr><th>Response Code</th><th>Reason</th></tr>
+                <tr><th>200</th><th>Data was found and deleted successfully.</th></tr>
+                <tr><th>404</th><th>Data was not found or has already expired.</th></tr>
+                <tr><th>405</th><th>Data was found, but could not be deleted due to early_expire flag.</th></tr>
+            </table>
+            HTTP response will
+            be 200 if data was deleted. HTTP 404 if not found (or already expired), HTTP 405 if found
+            and not allowed for early expire.</p>
+        </div>
+    </div>
 
 </div>
 
