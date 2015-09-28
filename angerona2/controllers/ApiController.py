@@ -1,5 +1,5 @@
 import json
-import xml
+# import xml
 
 class ApiController(object):
     def __init__(self, fmt='dict', **kwargs):
@@ -13,7 +13,7 @@ class ApiController(object):
 
         self.ERR = {
              0: ('OK', 'OK'),
-            -1: ('ERROR', 'General error.'),
+            -1: ('OOPS', 'General error.'),
             -2: ('MISSING', 'Missing fields.'),
             -3: ('INVALID', "Fields didn't validate."),
             -4: ('THROTTLED', 'Request has been throttled.'),

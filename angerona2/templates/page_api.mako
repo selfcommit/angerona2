@@ -9,7 +9,6 @@
             $('#snippet_type_table tbody:first').slideToggle(400);
         });
     });
-   
 </script>
 
 </%block>
@@ -38,16 +37,64 @@
         </div>
         <div class="col-sm-10">
             <h3>Standard Request/Response Object(s)</h3>
-            <p>Our API utilizes HTTP verbs and HTTP response codes; all responses are encoded into a
-            JSON object described by each documented function. UTF-8 is expected. HTTP response code
-            will usually make sense with what's happening.</p>
+            <p>The API utilizes the full spectrum of HTTP verbs and several HTTP response codes; all responses
+            are encoded into a JSON object described by each documented method. All encoding should be UTF-8.</p>
 
-            <pre class="bg resp">{'status': _int_, 'msg': _str_, 'data': _any_}</pre>
+            <p>Standard Response Body</p>
+            <pre class="bg resp">{'status': &lt;value&gt;, 'msg': &lt;value&gt;, 'data': &lt;value&gt;}</pre>
 
-            <p>All methods are documented below.</p>
-
-            <p>Generic/standard Error Responses</p>
-
+            <p>These are the predefined "standard" error responses for the API; each command may return these
+            or other error messages (always indicated by status not being 0).</p>
+            <table class="table table-condensed">
+                <tr><th>Status</th><th>Data</th><th>Msg</th><th>Reason</th></tr>
+                <tr>
+                    <td>0</td>
+                    <td>~varies~</td>
+                    <td>OK</td>
+                    <td>Successful response, see method for data description.</td>
+                </tr>
+                <tr>
+                    <td>-1</td>
+                    <td>["OOPS", ...]</td>
+                    <td>General error.</td>
+                    <td>Data might contain additional human-readable information.</td>
+                </tr>
+                <tr>
+                    <td>-2</td>
+                    <td>["MISSING", ["fieldname"...]]</td>
+                    <td>Missing fields.</td>
+                    <td>Expected fields were not sent, they are listed in the second element of the data.</td>
+                </tr>
+                <tr>
+                    <td>-3</td>
+                    <td>["INVALID", ["fieldname"...]]</td>
+                    <td>Fields didn't validate.</td>
+                    <td>Expected fields didn't meet validation requirements, they are listed in the second element of the data.</td>
+                </tr>
+                <tr>
+                    <td>-4</td>
+                    <td>["THROTTLED", integer]</td>
+                    <td>Request has been throttled.</td>
+                    <td>This request was not acted on due to throttling. The integer in the second element of data is the number of seconds you must wait for the next request.</td>
+                </tr>
+            </table>
+            
+<!--            <h3>Throttling</h3>
+            <p>The entire platform is throttled according to the following metrics. Please contact me if you need to exceed these on the official instance.</p>
+            <table class="table table-condensed">
+                <tr>
+                    <td>Network Bandwidth</td>
+                    <td>1MiB stored/per ip/per day</td>
+                </tr>
+                <tr>
+                    <td>Secret Lookups</td>
+                    <td>100 failed requests/per ip/per minute</td>
+                </tr>
+                <tr>
+                    <td>Request Counts</td>
+                    <td>5 successful requests/per ip/per second</td>
+                </tr>
+            </table>-->
         </div>
         <div class="clearfix"></div>
     </div>
@@ -120,10 +167,10 @@
     "status": 200,
     "msg": "OK",
     "data": {
-        "uuid": "lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D",
+        "uuid": "012345678abcdefghijklmnopqrstuvw",
         "host": "http://localhost:6543",
-        "browser_uri": "/retrieve/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D",
-        "api_uri": "/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D",
+        "browser_uri": "/retrieve/012345678abcdefghijklmnopqrstuvw",
+        "api_uri": "/api/v1/secret/012345678abcdefghijklmnopqrstuvw",
     }
 }
 </span></pre>
@@ -174,7 +221,7 @@
             <h3>Example</h3>
             <p>Just a standard API grab.</p>
             <pre class="bg">
-<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D</span><span class="resp">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/012345678abcdefghijklmnopqrstuvw</span><span class="resp">
 {
     "status": 0,
     "msg": "OK",
@@ -190,14 +237,14 @@
 </span></pre>
             <p>Some data-only, better for some kinds of script use.</p>
             <pre class="bg">
-<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D?data</span><span class="resp">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/012345678abcdefghijklmnopqrstuvw?data</span><span class="resp">
 this would be stored
 </span></pre>
 
             <h3>Failure Example</h3>
             <p>Lookup of an expired/deleted secret, HTTP status will be 404.</p>
             <pre class="bg">
-<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D</span><span class="resp">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/012345678abcdefghijklmnopqrstuvw</span><span class="resp">
 {
     "status": 0,
     "msg": "OK",
@@ -207,7 +254,7 @@ this would be stored
 
             <p>Throttled. Please don't hammer me.</p>
             <pre class="bg">
-<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/lcDf0mTp0YbNQPeZFzDIOdWrkz2Cat8D</span><span class="resp">
+<span class="req">$ ~ curl http://localhost:6543/api/v1/secret/012345678abcdefghijklmnopqrstuvw</span><span class="resp">
 {
     "status": -4,
     "msg": "Request has been throttled.",
@@ -218,7 +265,7 @@ this would be stored
         <div class="clearfix"></div>
     </div>
 
-    <div class="row hl">
+    <div class="row hl2">
         <div class="col-sm-2">
             <h3>Secret(s)</h3>
         </div>
@@ -231,13 +278,10 @@ this would be stored
             will mirror the HTTP Response Code.</p>
             <table class="table table-condensed">
                 <tr><th>Response Code</th><th>Reason</th></tr>
-                <tr><th>200</th><th>Data was found and deleted successfully.</th></tr>
-                <tr><th>404</th><th>Data was not found or has already expired.</th></tr>
-                <tr><th>405</th><th>Data was found, but could not be deleted due to early_expire flag.</th></tr>
+                <tr><td>200</td><td>Secret was found and deleted successfully.</td></tr>
+                <tr><td>404</td><td>Secret was not found or has already expired.</td></tr>
+                <tr><td>405</td><td>Secret was found, but could not be deleted due to early_expire flag.</td></tr>
             </table>
-            HTTP response will
-            be 200 if data was deleted. HTTP 404 if not found (or already expired), HTTP 405 if found
-            and not allowed for early expire.</p>
         </div>
     </div>
 

@@ -12,7 +12,6 @@ from sqlalchemy.orm import (
 
 from angerona2 import (
     Base,
-    DBSession,
 )
 
 from sqlalchemy.ext.hybrid import hybrid_property

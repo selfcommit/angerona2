@@ -44,6 +44,8 @@ def main(global_config, **settings):
     config.add_route('secret', '/secret')
     config.add_route('retrieve', '/retrieve/{uuid}')
 
+    config.add_route('api', '/api')
+
     config.add_route('api_secret', '/api/v1/secret')
     config.add_route('api_secret:uuid', '/api/v1/secret/{uuid}')
 
